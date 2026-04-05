@@ -11,11 +11,23 @@ function isLikelyPhone(value: string) {
 export function CallbackForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [consent, setConsent] = useState(false);
+  const [requestType, setRequestType] = useState<"instant" | "scheduled">("instant");
+  const [scheduledFor, setScheduledFor] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const disabled = useMemo(() => loading || !consent || !isLikelyPhone(phoneNumber), [loading, consent, phoneNumber]);
+  const disabled = useMemo(() => {
+    if (loading || !consent || !isLikelyPhone(phoneNumber)) {
+      return true;
+    }
+
+    if (requestType === "scheduled") {
+      return !scheduledFor;
+    }
+
+    return false;
+  }, [loading, consent, phoneNumber, requestType, scheduledFor]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,7 +48,9 @@ export function CallbackForm() {
         body: JSON.stringify({
           phoneNumber,
           consent,
-          source: "landing-page"
+          source: "landing-page",
+          requestType,
+          scheduledFor: requestType === "scheduled" ? new Date(scheduledFor).toISOString() : null
         })
       });
 
@@ -46,12 +60,18 @@ export function CallbackForm() {
         throw new Error(data.error || "Unable to start callback.");
       }
 
-      trackEvent("callback_submit_success", { source: "landing-page" });
-      setMessage("We’re calling you now. Please answer to connect with our AI consultation assistant.");
+      trackEvent("callback_submit_success", { source: "landing-page", requestType });
+      setMessage(
+        requestType === "instant"
+          ? "We’re calling you now. Please answer to connect with our AI consultation assistant."
+          : "Your call has been scheduled. We’ll ring you at the selected time."
+      );
       setPhoneNumber("");
       setConsent(false);
+      setScheduledFor("");
+      setRequestType("instant");
     } catch (err) {
-      trackEvent("callback_submit_error");
+      trackEvent("callback_submit_error", { requestType });
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
@@ -60,6 +80,37 @@ export function CallbackForm() {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
+      <div className="mb-4 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => setRequestType("instant")}
+          className={`rounded-2xl border px-4 py-3 text-left transition ${
+            requestType === "instant"
+              ? "border-slate-900 bg-slate-900 text-white"
+              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"
+          }`}
+        >
+          <span className="block text-sm font-semibold">Call me instantly</span>
+          <span className={`mt-1 block text-sm ${requestType === "instant" ? "text-slate-200" : "text-slate-500"}`}>
+            Start the callback flow right away.
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setRequestType("scheduled")}
+          className={`rounded-2xl border px-4 py-3 text-left transition ${
+            requestType === "scheduled"
+              ? "border-slate-900 bg-slate-900 text-white"
+              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"
+          }`}
+        >
+          <span className="block text-sm font-semibold">Schedule for later</span>
+          <span className={`mt-1 block text-sm ${requestType === "scheduled" ? "text-slate-200" : "text-slate-500"}`}>
+            Queue a callback for a future time.
+          </span>
+        </button>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
           type="tel"
@@ -76,9 +127,22 @@ export function CallbackForm() {
           disabled={disabled}
           className="h-14 rounded-2xl bg-slate-900 px-6 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {loading ? "Calling..." : "Call Me Instantly"}
+          {loading ? (requestType === "instant" ? "Calling..." : "Scheduling...") : requestType === "instant" ? "Call Me Instantly" : "Schedule This Call"}
         </button>
       </div>
+
+      {requestType === "scheduled" ? (
+        <div className="mt-3">
+          <input
+            type="datetime-local"
+            required
+            min={new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 16)}
+            value={scheduledFor}
+            onChange={(e) => setScheduledFor(e.target.value)}
+            className="h-14 w-full rounded-2xl border border-slate-300 px-4 text-base outline-none transition focus:border-brand"
+          />
+        </div>
+      ) : null}
 
       <label className="mt-4 flex items-start gap-3 text-sm text-slate-600">
         <input

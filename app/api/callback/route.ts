@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTwilioClient, normalizeAndValidatePhoneNumber } from "@/lib/twilio";
+import { normalizeAndValidatePhoneNumber } from "@/lib/twilio";
 import { checkIpRateLimit, checkPhoneRateLimit } from "@/lib/rate-limit";
 import { sendLeadToCrm } from "@/lib/crm";
+import { createCallbackRequest, initiateCallbackCall } from "@/lib/callbacks";
 
 function getRequestIp(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
+  if (process.env.TRUST_PROXY_HEADERS !== "true") {
+    return "proxy-untrusted";
   }
+
+  const preferredHeaders = ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"];
+
+  for (const header of preferredHeaders) {
+    const value = request.headers.get(header);
+    if (!value) {
+      continue;
+    }
+
+    return header === "x-forwarded-for" ? value.split(",")[0].trim() : value.trim();
+  }
+
   return "unknown";
 }
 
@@ -44,12 +56,29 @@ export async function POST(request: NextRequest) {
 
     const rawPhone = String(body.phoneNumber || "");
     const phoneNumber = normalizeAndValidatePhoneNumber(rawPhone, "US");
+    const requestType = body.requestType === "scheduled" ? "scheduled" : "instant";
+    const source = String(body.source || "landing-page");
 
     if (!phoneNumber) {
       return NextResponse.json(
         { ok: false, error: "Please enter a valid phone number." },
         { status: 400 }
       );
+    }
+
+    let scheduledFor: string | null = null;
+    if (requestType === "scheduled") {
+      const scheduledInput = String(body.scheduledFor || "");
+      const scheduledDate = new Date(scheduledInput);
+
+      if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { ok: false, error: "Please choose a valid future time for the scheduled callback." },
+          { status: 400 }
+        );
+      }
+
+      scheduledFor = scheduledDate.toISOString();
     }
 
     const phoneRate = checkPhoneRateLimit(phoneNumber);
@@ -65,47 +94,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const callbackFrom = process.env.TWILIO_CALLBACK_FROM;
-    const voiceflowMainNumber = process.env.VOICEFLOW_MAIN_NUMBER;
-    const statusCallbackUrl = process.env.TWILIO_STATUS_CALLBACK_URL;
-
-    if (!callbackFrom || !voiceflowMainNumber) {
-      return NextResponse.json(
-        { ok: false, error: "Twilio environment variables are incomplete." },
-        { status: 500 }
-      );
-    }
-
-    const client = getTwilioClient();
-
-    const twiml = `
-<Response>
-  <Say voice="alice">Please hold while we connect you to our AI consultation assistant.</Say>
-  <Dial answerOnBridge="true">
-    <Number>${voiceflowMainNumber}</Number>
-  </Dial>
-</Response>`.trim();
-
-    const call = await client.calls.create({
-      to: phoneNumber,
-      from: callbackFrom,
-      twiml,
-      ...(statusCallbackUrl
-        ? {
-            statusCallback: statusCallbackUrl,
-            statusCallbackMethod: "POST",
-            statusCallbackEvent: ["initiated", "ringing", "answered", "completed"]
-          }
-        : {})
+    const callbackRequest = createCallbackRequest({
+      phoneNumber,
+      consent,
+      source,
+      ip,
+      requestType,
+      scheduledFor
     });
+
+    const processedRequest =
+      requestType === "instant" ? await initiateCallbackCall(callbackRequest.id) : callbackRequest;
 
     try {
       await sendLeadToCrm({
-        event: "callback_requested",
-        source: body.source || "landing-page",
+        event: requestType === "instant" ? "callback_requested" : "callback_scheduled",
+        source,
         phoneNumber,
         consent,
-        callSid: call.sid,
+        requestType,
+        scheduledFor,
+        callbackRequestId: processedRequest.id,
+        callSid: processedRequest.callSid,
         requestedAt: new Date().toISOString(),
         ip
       });
@@ -115,14 +125,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      callSid: call.sid,
-      message: "Callback initiated."
+      callbackRequestId: processedRequest.id,
+      callSid: processedRequest.callSid,
+      message:
+        requestType === "instant"
+          ? "Callback initiated."
+          : "Scheduled callback saved."
     });
   } catch (error) {
     console.error("Callback error:", error);
+    const message = error instanceof Error ? error.message : "Failed to initiate callback.";
 
     return NextResponse.json(
-      { ok: false, error: "Failed to initiate callback." },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

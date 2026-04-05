@@ -1,9 +1,11 @@
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { TrustStrip } from "@/components/trust-strip";
+import { CtaLink } from "@/components/cta-link";
+import { getTollFreeNumber } from "@/lib/public-config";
 
 export default function Page() {
-  const tollFreeNumber = process.env.NEXT_PUBLIC_TOLL_FREE_NUMBER || "+18005551234";
+  const tollFreeNumber = getTollFreeNumber();
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -22,9 +24,13 @@ export default function Page() {
             <a href="#how-it-works" className="text-sm font-medium text-slate-600 transition hover:text-slate-900">
               How it works
             </a>
-            <a href={`tel:${tollFreeNumber}`} className="text-sm font-medium text-slate-600 transition hover:text-slate-900">
+            <CtaLink
+              ctaId="header-call-now"
+              href={`tel:${tollFreeNumber}`}
+              className="text-sm font-medium text-slate-600 transition hover:text-slate-900"
+            >
               Call now
-            </a>
+            </CtaLink>
           </nav>
         </div>
       </header>
@@ -44,18 +50,20 @@ export default function Page() {
               Start an instant call with our AI consultant or request an immediate callback.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <a
+              <CtaLink
+                ctaId="footer-start-instant-call"
                 href={`tel:${tollFreeNumber}`}
                 className="inline-flex h-14 items-center justify-center rounded-2xl bg-emerald-500 px-7 text-base font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-400"
               >
                 Start Instant Call
-              </a>
-              <a
+              </CtaLink>
+              <CtaLink
+                ctaId="footer-get-a-call-now"
                 href="#callback"
                 className="inline-flex h-14 items-center justify-center rounded-2xl border border-white/20 bg-white/5 px-7 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
               >
                 Get a Call Now
-              </a>
+              </CtaLink>
             </div>
           </div>
         </section>

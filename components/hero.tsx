@@ -1,7 +1,9 @@
 import { CallbackForm } from "@/components/callback-form";
+import { CtaLink } from "@/components/cta-link";
+import { getTollFreeNumber } from "@/lib/public-config";
 
 export function Hero() {
-  const tollFreeNumber = process.env.NEXT_PUBLIC_TOLL_FREE_NUMBER || "+18005551234";
+  const tollFreeNumber = getTollFreeNumber();
 
   return (
     <section className="relative overflow-hidden">
@@ -22,18 +24,20 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <a
+            <CtaLink
+              ctaId="hero-start-instant-call"
               href={`tel:${tollFreeNumber}`}
               className="inline-flex h-14 items-center justify-center rounded-2xl bg-brand px-7 text-base font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:bg-brand-dark"
             >
               Start Instant Call
-            </a>
-            <a
+            </CtaLink>
+            <CtaLink
+              ctaId="hero-get-a-call-now"
               href="#callback"
               className="inline-flex h-14 items-center justify-center rounded-2xl border border-slate-300 bg-white px-7 text-base font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400"
             >
               Get a Call Now
-            </a>
+            </CtaLink>
           </div>
 
           <div id="callback" className="mt-6">
