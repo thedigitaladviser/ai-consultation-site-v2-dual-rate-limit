@@ -48,6 +48,15 @@ Fill in:
 - `TRUST_PROXY_HEADERS=true` when Traefik/Cloudflare is sanitizing client IP headers
 - `CRON_SECRET` required if you want to run scheduled callbacks
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` optional
+- `ADMIN_EMAILS` comma-separated bootstrap admin Google accounts
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `APP_BASE_URL`
+- `GMAIL_USER`
+- `GMAIL_APP_PASSWORD`
+- `GMAIL_FROM` optional
 
 ## Install
 
@@ -67,5 +76,25 @@ npm run dev
 
 - SQLite persistence now stores callback requests, CTA events, and rate limit counters in `data/app.db` by default.
 - To process scheduled callbacks on your VPS, have cron call `POST /api/cron/scheduled-callbacks` with `Authorization: Bearer $CRON_SECRET`.
+- A helper script is included at [`scripts/run-scheduled-callbacks.sh`](/home/digitaladviser/ai-consultation-site-v2-dual-rate-limit/scripts/run-scheduled-callbacks.sh) so cron can hit the secured endpoint locally.
 - Only enable `TRUST_PROXY_HEADERS=true` when Traefik is stripping client-supplied forwarding headers and you trust the Cloudflare/Traefik chain.
 - Instant and scheduled callback jobs now call `POST /v1/phone-number/{VOICEFLOW_PHONE_NUMBER_ID}/outbound` on the Voiceflow runtime API.
+
+## Admin Portal
+
+The admin portal is available at `/admin`.
+
+- Google sign-in is restricted to emails already in the `admins` table, emails in `ADMIN_EMAILS`, or emails with a pending admin invite.
+- Set `ADMIN_EMAILS` to bootstrap the first admin account before inviting others.
+- Invite emails are sent with Gmail SMTP using `GMAIL_USER` and `GMAIL_APP_PASSWORD`.
+- The admin dashboard shows recent callback jobs, last errors, scheduled times, current admins, and invite status.
+
+## VPS Cron Example
+
+Run the scheduler every minute with the same environment your app uses:
+
+```bash
+* * * * * cd /home/digitaladviser/ai-consultation-site-v2-dual-rate-limit && /usr/bin/env bash ./scripts/run-scheduled-callbacks.sh >> /var/log/ai-consultation-scheduler.log 2>&1
+```
+
+If your app is not on `127.0.0.1:3000`, set `APP_URL` in the cron environment before calling the script.
