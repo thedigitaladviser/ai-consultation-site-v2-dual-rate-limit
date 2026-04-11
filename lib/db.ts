@@ -47,6 +47,29 @@ function migrate(db: Database.Database) {
       metadata_json TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS admins (
+      email TEXT PRIMARY KEY,
+      name TEXT,
+      image TEXT,
+      invited_by TEXT,
+      created_at TEXT NOT NULL,
+      last_login_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_invites (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      invited_by TEXT NOT NULL,
+      status TEXT NOT NULL,
+      accepted_at TEXT,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_admin_invites_email_status
+      ON admin_invites(email, status);
   `);
 }
 

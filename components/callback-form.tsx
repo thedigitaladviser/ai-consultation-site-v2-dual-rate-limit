@@ -8,6 +8,20 @@ function isLikelyPhone(value: string) {
   return digits.length >= 10;
 }
 
+function toLocalDateTimeValue(date: Date) {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function formatScheduledMessage(value: string) {
+  const scheduledDate = new Date(value);
+  if (Number.isNaN(scheduledDate.getTime())) {
+    return "Your call has been scheduled.";
+  }
+
+  return `Your call has been scheduled for ${scheduledDate.toLocaleString()}.`;
+}
+
 export function CallbackForm() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [consent, setConsent] = useState(false);
@@ -64,7 +78,7 @@ export function CallbackForm() {
       setMessage(
         requestType === "instant"
           ? "We’re calling you now. Please answer to connect with our AI consultation assistant."
-          : "Your call has been scheduled. We’ll ring you at the selected time."
+          : formatScheduledMessage(scheduledFor)
       );
       setPhoneNumber("");
       setConsent(false);
@@ -136,11 +150,14 @@ export function CallbackForm() {
           <input
             type="datetime-local"
             required
-            min={new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 16)}
+            min={toLocalDateTimeValue(new Date(Date.now() + 15 * 60 * 1000))}
             value={scheduledFor}
             onChange={(e) => setScheduledFor(e.target.value)}
             className="h-14 w-full rounded-2xl border border-slate-300 px-4 text-base outline-none transition focus:border-brand"
           />
+          <p className="mt-2 text-sm text-slate-500">
+            Times are scheduled using your local browser time.
+          </p>
         </div>
       ) : null}
 
