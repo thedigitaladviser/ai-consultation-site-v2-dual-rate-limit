@@ -41,13 +41,13 @@ export async function sendAdminInviteEmail(input: {
     text: [
       `${input.invitedBy} invited you to become an admin for the AI Consultation portal.`,
       "",
-      `Sign in with this Google account to accept: ${inviteUrl}`,
+      `Open your invite link to choose Google OAuth or email registration: ${inviteUrl}`,
       "",
       "This invite expires automatically."
     ].join("\n"),
     html: `
       <p>${input.invitedBy} invited you to become an admin for the AI Consultation portal.</p>
-      <p><a href="${inviteUrl}">Sign in with Google to accept the invite</a></p>
+      <p><a href="${inviteUrl}">Open invite and choose a sign-in method</a></p>
       <p>This invite expires automatically.</p>
     `
   });

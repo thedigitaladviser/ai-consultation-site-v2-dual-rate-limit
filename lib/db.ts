@@ -71,6 +71,25 @@ function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_admin_invites_email_status
       ON admin_invites(email, status);
   `);
+
+  const adminColumns = db
+    .prepare("PRAGMA table_info(admins)")
+    .all() as Array<{ name: string }>;
+
+  const existing = new Set(adminColumns.map((column) => column.name));
+  const requiredColumns: Array<[string, string]> = [
+    ["password_hash", "TEXT"],
+    ["country", "TEXT"],
+    ["city", "TEXT"],
+    ["state", "TEXT"],
+    ["phone_number", "TEXT"]
+  ];
+
+  for (const [name, type] of requiredColumns) {
+    if (!existing.has(name)) {
+      db.exec(`ALTER TABLE admins ADD COLUMN ${name} ${type};`);
+    }
+  }
 }
 
 export function getDb() {
