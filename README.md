@@ -90,6 +90,7 @@ The admin portal is available at `/admin`.
 - Set `ADMIN_EMAILS` to bootstrap the first admin account before inviting others.
 - Invited admins can choose either Google OAuth or email registration from the same invite link.
 - Email registration includes required `country`, `city`, and `state` fields plus optional `phone number`.
+- Pending invites can be cancelled directly from the admin portal.
 - Invite emails are sent with Gmail SMTP using `GMAIL_USER` and `GMAIL_APP_PASSWORD`.
 - The admin dashboard shows recent callback jobs, last errors, scheduled times, current admins, and invite status.
 

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { findAdmin, listAdminInvites, listAdmins, listCallbackRequests } from "@/lib/admins";
-import { inviteAdmin } from "@/app/admin/actions";
+import { cancelInvite, inviteAdmin } from "@/app/admin/actions";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -15,8 +15,27 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-export default async function AdminPage() {
+type AdminPageProps = {
+  searchParams?: Promise<{
+    message?: string;
+  }>;
+};
+
+function getMessageBanner(message: string | undefined) {
+  if (message === "invite_cancelled") {
+    return "Invitation cancelled successfully.";
+  }
+
+  if (message === "invite_sent") {
+    return "Invitation sent successfully.";
+  }
+
+  return null;
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
   const session = await getServerSession(authOptions);
+  const params = await searchParams;
   const email = session?.user?.email;
 
   if (!email) {
@@ -31,6 +50,7 @@ export default async function AdminPage() {
   const callbacks = listCallbackRequests();
   const admins = listAdmins();
   const invites = listAdminInvites();
+  const messageBanner = getMessageBanner(params?.message);
 
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10 text-slate-950">
@@ -48,6 +68,12 @@ export default async function AdminPage() {
             Sign out
           </a>
         </header>
+
+        {messageBanner ? (
+          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-800">
+            {messageBanner}
+          </div>
+        ) : null}
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.8fr]">
           <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
@@ -134,6 +160,17 @@ export default async function AdminPage() {
                     <p className="font-semibold">{invite.email}</p>
                     <p className="mt-1 text-sm text-slate-500">Status: {invite.status}</p>
                     <p className="mt-1 text-sm text-slate-500">Expires: {formatDate(invite.expiresAt)}</p>
+                    {invite.status === "pending" ? (
+                      <form action={cancelInvite} className="mt-3">
+                        <input type="hidden" name="inviteId" value={invite.id} />
+                        <button
+                          type="submit"
+                          className="inline-flex h-9 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                          Cancel invite
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
                 ))}
               </div>

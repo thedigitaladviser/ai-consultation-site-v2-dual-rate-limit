@@ -21,7 +21,7 @@ export type AdminInviteRecord = {
   email: string;
   token: string;
   invitedBy: string;
-  status: "pending" | "accepted" | "expired";
+  status: "pending" | "accepted" | "expired" | "cancelled";
   acceptedAt: string | null;
   expiresAt: string;
   createdAt: string;
@@ -71,7 +71,7 @@ function mapInvite(row: {
   email: string;
   token: string;
   invited_by: string;
-  status: "pending" | "accepted" | "expired";
+  status: "pending" | "accepted" | "expired" | "cancelled";
   accepted_at: string | null;
   expires_at: string;
   created_at: string;
@@ -265,6 +265,20 @@ export function createAdminInvite(input: {
   );
 
   return invite;
+}
+
+export function cancelPendingInvite(inviteId: string) {
+  const now = new Date().toISOString();
+  const result = getDb()
+    .prepare(`
+      UPDATE admin_invites
+      SET status = 'cancelled', accepted_at = ?
+      WHERE id = ?
+        AND status = 'pending'
+    `)
+    .run(now, inviteId);
+
+  return result.changes > 0;
 }
 
 export function registerAdminFromInvite(input: {

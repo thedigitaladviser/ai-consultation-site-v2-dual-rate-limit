@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { createAdminInvite, findAdmin } from "@/lib/admins";
+import { cancelPendingInvite, createAdminInvite, findAdmin } from "@/lib/admins";
 import { sendAdminInviteEmail } from "@/lib/email";
 
 export async function inviteAdmin(formData: FormData) {
@@ -30,5 +30,22 @@ export async function inviteAdmin(formData: FormData) {
     token: invite.token
   });
 
-  revalidatePath("/admin");
+  redirect("/admin?message=invite_sent");
+}
+
+export async function cancelInvite(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  const inviterEmail = session?.user?.email;
+
+  if (!inviterEmail || !findAdmin(inviterEmail)) {
+    throw new Error("Unauthorized");
+  }
+
+  const inviteId = String(formData.get("inviteId") || "");
+  if (!inviteId) {
+    throw new Error("Invite id is required.");
+  }
+
+  cancelPendingInvite(inviteId);
+  redirect("/admin?message=invite_cancelled");
 }
