@@ -48,6 +48,7 @@ Fill in:
 - `TRUST_PROXY_HEADERS=true` when Traefik/Cloudflare is sanitizing client IP headers
 - `CRON_SECRET` required if you want to run scheduled callbacks
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` optional
+- `NEXT_PUBLIC_GTM_ID` optional
 - `ADMIN_EMAILS` comma-separated bootstrap admin Google accounts
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
@@ -79,6 +80,7 @@ npm run dev
 - A helper script is included at [`scripts/run-scheduled-callbacks.sh`](/home/digitaladviser/ai-consultation-site-v2-dual-rate-limit/scripts/run-scheduled-callbacks.sh) so cron can hit the secured endpoint locally.
 - Only enable `TRUST_PROXY_HEADERS=true` when Traefik is stripping client-supplied forwarding headers and you trust the Cloudflare/Traefik chain.
 - Instant and scheduled callback jobs now call `POST /v1/phone-number/{VOICEFLOW_PHONE_NUMBER_ID}/outbound` on the Voiceflow runtime API.
+- If `NEXT_PUBLIC_GTM_ID` is set, Google Tag Manager loads globally and client-side `trackEvent(...)` calls are pushed into `dataLayer`.
 
 ## Admin Portal
 
