@@ -34,12 +34,14 @@ export async function requestPasswordReset(formData: FormData) {
 
   const ipRate = checkPasswordResetIpRateLimit(ip);
   if (!ipRate.allowed) {
+    console.warn(`[auth][reset-throttle] scope=ip ip=${ip} email=${email || "unknown"}`);
     redirect("/admin/forgot-password?throttled=1");
   }
 
   if (email && email.includes("@")) {
     const emailRate = checkPasswordResetEmailRateLimit(email);
     if (!emailRate.allowed) {
+      console.warn(`[auth][reset-throttle] scope=email ip=${ip} email=${email}`);
       redirect("/admin/forgot-password?throttled=1");
     }
 
