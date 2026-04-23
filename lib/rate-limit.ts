@@ -65,3 +65,15 @@ export function checkPhoneRateLimit(phoneNumber: string) {
   const windowMs = getPositiveNumber(process.env.RATE_LIMIT_PHONE_WINDOW_MS, 3600000);
   return checkRateLimit(`callback:phone:${phoneNumber}`, max, windowMs);
 }
+
+export function checkPasswordResetIpRateLimit(ip: string) {
+  const max = getPositiveNumber(process.env.RESET_RATE_LIMIT_IP_MAX, 5);
+  const windowMs = getPositiveNumber(process.env.RESET_RATE_LIMIT_IP_WINDOW_MS, 900000);
+  return checkRateLimit(`password-reset:ip:${ip}`, max, windowMs);
+}
+
+export function checkPasswordResetEmailRateLimit(email: string) {
+  const max = getPositiveNumber(process.env.RESET_RATE_LIMIT_EMAIL_MAX, 3);
+  const windowMs = getPositiveNumber(process.env.RESET_RATE_LIMIT_EMAIL_WINDOW_MS, 3600000);
+  return checkRateLimit(`password-reset:email:${email}`, max, windowMs);
+}

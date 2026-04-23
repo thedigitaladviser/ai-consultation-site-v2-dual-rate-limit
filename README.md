@@ -44,6 +44,10 @@ Fill in:
 - `RATE_LIMIT_WINDOW_MS` optional
 - `RATE_LIMIT_PHONE_MAX` optional
 - `RATE_LIMIT_PHONE_WINDOW_MS` optional
+- `RESET_RATE_LIMIT_IP_MAX` optional
+- `RESET_RATE_LIMIT_IP_WINDOW_MS` optional
+- `RESET_RATE_LIMIT_EMAIL_MAX` optional
+- `RESET_RATE_LIMIT_EMAIL_WINDOW_MS` optional
 - `SQLITE_DB_PATH` optional
 - `TRUST_PROXY_HEADERS=true` when Traefik/Cloudflare is sanitizing client IP headers
 - `CRON_SECRET` required if you want to run scheduled callbacks
@@ -92,6 +96,7 @@ The admin portal is available at `/admin`.
 - Email registration includes required `country`, `city`, and `state` fields plus optional `phone number`.
 - Pending invites can be cancelled directly from the admin portal.
 - Email/password admins can request a forgot-password reset link from `/admin/forgot-password`.
+- Forgot-password requests are rate limited per IP and per email.
 - Invite emails are sent with Gmail SMTP using `GMAIL_USER` and `GMAIL_APP_PASSWORD`.
 - The admin dashboard shows recent callback jobs, last errors, scheduled times, current admins, and invite status.
 

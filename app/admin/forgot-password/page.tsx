@@ -4,12 +4,14 @@ import { requestPasswordReset } from "@/app/admin/forgot-password/actions";
 type ForgotPasswordPageProps = {
   searchParams?: Promise<{
     sent?: string;
+    throttled?: string;
   }>;
 };
 
 export default async function ForgotPasswordPage({ searchParams }: ForgotPasswordPageProps) {
   const params = await searchParams;
   const sent = params?.sent === "1";
+  const throttled = params?.throttled === "1";
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-16 text-white">
@@ -23,6 +25,11 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
         {sent ? (
           <p className="mt-5 rounded-2xl bg-emerald-500/20 p-4 text-sm text-emerald-100">
             If that email is registered, a reset link has been sent.
+          </p>
+        ) : null}
+        {throttled ? (
+          <p className="mt-5 rounded-2xl bg-red-500/15 p-4 text-sm text-red-100">
+            Too many reset attempts. Please wait and try again.
           </p>
         ) : null}
 
