@@ -91,6 +91,7 @@ The admin portal is available at `/admin`.
 - Invited admins can choose either Google OAuth or email registration from the same invite link.
 - Email registration includes required `country`, `city`, and `state` fields plus optional `phone number`.
 - Pending invites can be cancelled directly from the admin portal.
+- Email/password admins can request a forgot-password reset link from `/admin/forgot-password`.
 - Invite emails are sent with Gmail SMTP using `GMAIL_USER` and `GMAIL_APP_PASSWORD`.
 - The admin dashboard shows recent callback jobs, last errors, scheduled times, current admins, and invite status.
 

@@ -33,6 +33,7 @@ type SignInPageProps = {
     error?: string;
     invite?: string;
     registered?: string;
+    reset?: string;
   }>;
 };
 
@@ -54,6 +55,7 @@ export default async function AdminSignInPage({ searchParams }: SignInPageProps)
         ? "Sign-in failed. Please try again."
         : null;
   const registeredMessage = params?.registered ? "Registration complete. You can sign in with email now." : null;
+  const resetMessage = params?.reset ? "Password updated. You can now sign in with your new password." : null;
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-16 text-white">
@@ -65,6 +67,9 @@ export default async function AdminSignInPage({ searchParams }: SignInPageProps)
         {errorMessage ? <p className="mt-5 rounded-2xl bg-red-500/15 p-4 text-sm text-red-100">{errorMessage}</p> : null}
         {registeredMessage ? (
           <p className="mt-5 rounded-2xl bg-emerald-500/20 p-4 text-sm text-emerald-100">{registeredMessage}</p>
+        ) : null}
+        {resetMessage ? (
+          <p className="mt-5 rounded-2xl bg-emerald-500/20 p-4 text-sm text-emerald-100">{resetMessage}</p>
         ) : null}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-2">

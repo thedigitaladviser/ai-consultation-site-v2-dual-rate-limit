@@ -27,6 +27,16 @@ export type AdminInviteRecord = {
   createdAt: string;
 };
 
+type AdminPasswordResetRecord = {
+  id: string;
+  email: string;
+  token: string;
+  status: "pending" | "used" | "expired";
+  expiresAt: string;
+  usedAt: string | null;
+  createdAt: string;
+};
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -86,6 +96,26 @@ function mapInvite(row: {
     expiresAt: row.expires_at,
     createdAt: row.created_at
   } satisfies AdminInviteRecord;
+}
+
+function mapPasswordReset(row: {
+  id: string;
+  email: string;
+  token: string;
+  status: "pending" | "used" | "expired";
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}) {
+  return {
+    id: row.id,
+    email: row.email,
+    token: row.token,
+    status: row.status,
+    expiresAt: row.expires_at,
+    usedAt: row.used_at,
+    createdAt: row.created_at
+  } satisfies AdminPasswordResetRecord;
 }
 
 export function isBootstrapAdmin(email: string) {
@@ -347,6 +377,86 @@ export function authenticateAdminWithPassword(email: string, password: string) {
     name: admin.name,
     image: admin.image
   };
+}
+
+export function createPasswordResetToken(email: string) {
+  const normalizedEmail = normalizeEmail(email);
+  const admin = findAdmin(normalizedEmail);
+  if (!admin) {
+    return null;
+  }
+
+  const db = getDb();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+  const token = randomBytes(32).toString("hex");
+  const id = randomUUID();
+
+  db.prepare(`
+    UPDATE admin_password_resets
+    SET status = 'expired'
+    WHERE email = ?
+      AND status = 'pending'
+  `).run(normalizedEmail);
+
+  db.prepare(`
+    INSERT INTO admin_password_resets (id, email, token, status, expires_at, used_at, created_at)
+    VALUES (?, ?, ?, 'pending', ?, NULL, ?)
+  `).run(id, normalizedEmail, token, expiresAt, now.toISOString());
+
+  return {
+    email: normalizedEmail,
+    token,
+    expiresAt
+  };
+}
+
+export function findValidPasswordResetToken(token: string) {
+  const now = new Date().toISOString();
+  const row = getDb()
+    .prepare(`
+      SELECT id, email, token, status, expires_at, used_at, created_at
+      FROM admin_password_resets
+      WHERE token = ?
+      LIMIT 1
+    `)
+    .get(token) as Parameters<typeof mapPasswordReset>[0] | undefined;
+
+  if (!row) {
+    return null;
+  }
+
+  if (row.status !== "pending" || row.expires_at <= now) {
+    if (row.status === "pending" && row.expires_at <= now) {
+      getDb().prepare("UPDATE admin_password_resets SET status = 'expired' WHERE id = ?").run(row.id);
+    }
+    return null;
+  }
+
+  return mapPasswordReset(row);
+}
+
+export function resetPasswordWithToken(token: string, newPassword: string) {
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters.");
+  }
+
+  const resetRecord = findValidPasswordResetToken(token);
+  if (!resetRecord) {
+    throw new Error("Reset link is invalid or expired.");
+  }
+
+  const now = new Date().toISOString();
+  upsertAdmin({
+    email: resetRecord.email,
+    passwordHash: hashPassword(newPassword)
+  });
+
+  getDb()
+    .prepare("UPDATE admin_password_resets SET status = 'used', used_at = ? WHERE id = ?")
+    .run(now, resetRecord.id);
+
+  return true;
 }
 
 export function listAdmins() {

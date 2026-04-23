@@ -56,6 +56,9 @@ export function EmailSignInForm({ prefilledEmail }: { prefilledEmail?: string | 
         {loading ? "Signing in..." : "Sign in with email"}
       </button>
       {error ? <p className="text-sm text-red-200">{error}</p> : null}
+      <a href="/admin/forgot-password" className="inline-block text-sm text-emerald-200 hover:text-emerald-100">
+        Forgot password?
+      </a>
     </form>
   );
 }
