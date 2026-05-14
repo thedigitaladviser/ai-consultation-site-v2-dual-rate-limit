@@ -3,10 +3,10 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "node scripts/with-supported-node.cjs next dev",
+    "build": "node scripts/with-supported-node.cjs next build",
+    "start": "node scripts/with-supported-node.cjs next start",
+    "lint": "node scripts/with-supported-node.cjs next lint"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
