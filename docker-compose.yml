@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      SQLITE_DB_PATH: /app/data/app.db
+    expose:
+      - "3000"
+    volumes:
+      - ./data:/app/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ai-consultation.rule=Host(`${APP_DOMAIN:?APP_DOMAIN is required}`)
+      - traefik.http.routers.ai-consultation.entrypoints=websecure
+      - traefik.http.routers.ai-consultation.tls=true
+      - traefik.http.routers.ai-consultation.tls.certresolver=letsencrypt
+      - traefik.http.services.ai-consultation.loadbalancer.server.port=3000
+    networks:
+      - default
+      - traefik-proxy
+
+networks:
+  traefik-proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-proxy}

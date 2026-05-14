@@ -4,6 +4,8 @@ import { TrustStrip } from "@/components/trust-strip";
 import { CtaLink } from "@/components/cta-link";
 import { getTollFreeNumber } from "@/lib/public-config";
 
+export const dynamic = "force-dynamic";
+
 export default function Page() {
   const tollFreeNumber = getTollFreeNumber();
 

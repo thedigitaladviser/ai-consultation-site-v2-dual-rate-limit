@@ -102,6 +102,8 @@ The admin portal is available at `/admin`.
 
 ## VPS Cron Example
 
+For the full Hostinger KVM2 Docker and Traefik deployment path, see [`DEPLOYMENT.md`](/home/digitaladviser/ai-consultation-site-v2-dual-rate-limit/DEPLOYMENT.md).
+
 Run the scheduler every minute with the same environment your app uses:
 
 ```bash
