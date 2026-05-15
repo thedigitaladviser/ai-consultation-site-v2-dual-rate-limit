@@ -22,6 +22,20 @@ A hardened Next.js landing page for an SME-focused AI consultation funnel.
 - lets a visitor schedule a callback for later
 - uses the Voiceflow runtime outbound API to place the callback
 
+## Landing Page Copy
+
+The hero includes a mock AI consultation panel that previews the voice-agent flow. The example questions should stay short, specific, and easy for busy SME owners to answer.
+
+Current Question 3:
+
+> Which result would matter most right now: more leads, faster follow-up, less admin, or lower costs?
+
+Current Outcome:
+
+> A prioritized shortlist of AI opportunities, with expected impact, complexity, and the best first project to test.
+
+Avoid using the Outcome row as another scheduling CTA; it should describe the tangible result the visitor receives from the assessment.
+
 ## Required setup
 
 Create a `.env.local` file from `.env.example`.
