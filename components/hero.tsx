@@ -103,21 +103,14 @@ export function Hero() {
                 </div>
                 <div className="rounded-2xl bg-white/10 p-3.5">
                   <p className="text-sm text-slate-300">Question 3</p>
-                  <p className="mt-1 text-xs font-medium leading-5 sm:text-sm">
-                    If we found you a solution that would immediately show signs of improved performance, what would be the
-                    projected timeframe for its implementation? ASAP? In a month? Sometime this year? Maybe sometime next year?
-                    And what would be the budget you could afford to set aside for this project?
+                  <p className="mt-1 text-sm font-medium">
+                    Which result would matter most right now: more leads, faster follow-up, less admin, or lower costs?
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-3.5">
                   <p className="text-sm text-slate-300">Outcome</p>
-                  <p className="mt-1 text-sm font-medium">Identify the fastest, highest-impact AI wins.</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 p-3.5">
-                  <p className="text-sm text-slate-300">Outcome (optional)</p>
-                  <p className="mt-1 text-xs font-medium leading-5 sm:text-sm">
-                    Schedule a free 30-minute introductory call with Custom AI Solutions to discuss details of your solution and
-                    determine the broader action plan.
+                  <p className="mt-1 text-sm font-medium">
+                    A prioritized shortlist of AI opportunities, with expected impact, complexity, and the best first project to test.
                   </p>
                 </div>
               </div>
